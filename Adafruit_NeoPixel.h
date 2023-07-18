@@ -53,6 +53,10 @@
 #ifdef TARGET_LPC1768
 #include <Arduino.h>
 #endif
+#ifdef TARGET_GIGA
+#include "mbed.h"
+#include "pinDefinitions.h"
+#endif
 
 #if defined(ARDUINO_ARCH_RP2040)
 #include <stdlib.h>
@@ -401,6 +405,9 @@ protected:
 #if defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ARDUINO_CORE_STM32)
   GPIO_TypeDef *gpioPort; ///< Output GPIO PORT
   uint32_t gpioPin;       ///< Output GPIO PIN
+#endif
+#if defined(TARGET_GIGA)
+  mbed::DigitalInOut *gpio;
 #endif
 #if defined(ARDUINO_ARCH_RP2040)
   PIO pio = pio0;

@@ -1672,9 +1672,53 @@ void Adafruit_NeoPixel::show(void) {
 
 #elif defined(__arm__)
 
+#if defined(TARGET_GIGA)
+  // Arduino GIGA -----------------------------------------------------------
+  uint8_t *p = pixels, *end = p + numBytes, pix;
+  while (p < end)
+  {
+    pix = *p++;
+    for (int i = 0; i < 8; i++)
+    {
+      // gpio_write(&gpio->gpio, 1);
+      gpio->write(1);
+
+      // duty cycle determines bit value
+      // if (pix & 0x80)
+      if (bitRead(pix, i) == 0)
+      {
+        // one
+        // wait_ns(400); -> 192 cycles
+        for (int j = 0; j < 96; j++)
+          __NOP();
+
+        // gpio_write(&gpio->gpio, 0);
+        gpio->write(0);
+
+        // wait_ns(850) -> 408 cycles
+        for (int j = 0; j < 204; j++)
+          __NOP();
+      }
+      else
+      {
+        // zero
+        // wait_ns(800) -> 384 cycles
+        for (int j = 0; j < 192; j++)
+          __NOP();
+
+        gpio->write(0);
+        // gpio_write(&gpio->gpio, 0);
+        // wait_ns(450) -> 216 cycles
+        for (int j = 0; j < 108; j++)
+          __NOP();
+      }
+
+      // pix = pix << 1; // shift to next bit
+    }
+  }
     // ARM MCUs -- Teensy 3.0, 3.1, LC, Arduino Due, RP2040 -------------------
 
-#if defined(ARDUINO_ARCH_RP2040)
+#elif defined(ARDUINO_ARCH_RP2040)
   // Use PIO
   rp2040Show(pin, pixels, numBytes, is800KHz);
 
@@ -3059,6 +3103,14 @@ void Adafruit_NeoPixel::setPin(int16_t p) {
 #if defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ARDUINO_CORE_STM32)
   gpioPort = digitalPinToPort(p);
   gpioPin = STM_LL_GPIO_PIN(digitalPinToPinName(p));
+#endif
+#if defined(TARGET_GIGA)
+  gpio = digitalPinToGpio(pin);
+  if (gpio == NULL)
+  {
+      gpio = new mbed::DigitalInOut(digitalPinToPinName(pin), PIN_OUTPUT, PullNone, 0);
+      digitalPinToGpio(pin) = gpio;
+  }
 #endif
 }
 
