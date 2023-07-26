@@ -1672,7 +1672,7 @@ void Adafruit_NeoPixel::show(void) {
 
 #elif defined(__arm__)
 
-#if defined(TARGET_GIGA)
+#if defined(TARGET_GIGA) || defined(TARGET_M4)
   // Arduino GIGA -----------------------------------------------------------
   uint8_t *p = pixels, *end = p + numBytes, pix;
   while (p < end)
@@ -1689,27 +1689,43 @@ void Adafruit_NeoPixel::show(void) {
       {
         // one
         // wait_ns(400); -> 192 cycles
+#if defined(TARGET_GIGA)
         for (int j = 0; j < 96; j++)
+#else
+        for (int j = 0; j < 48; j++)
+#endif
           __NOP();
 
         // gpio_write(&gpio->gpio, 0);
         gpio->write(0);
 
         // wait_ns(850) -> 408 cycles
+#if defined(TARGET_GIGA)
         for (int j = 0; j < 204; j++)
+#else
+        for (int j = 0; j < 102; j++)
+#endif
           __NOP();
       }
       else
       {
         // zero
         // wait_ns(800) -> 384 cycles
+#if defined(TARGET_GIGA)
         for (int j = 0; j < 192; j++)
+#else
+        for (int j = 0; j < 96; j++)
+#endif
           __NOP();
 
         gpio->write(0);
         // gpio_write(&gpio->gpio, 0);
         // wait_ns(450) -> 216 cycles
+#if defined(TARGET_GIGA)
         for (int j = 0; j < 108; j++)
+#else
+        for (int j = 0; j < 54; j++)
+#endif
           __NOP();
       }
 
@@ -3104,7 +3120,7 @@ void Adafruit_NeoPixel::setPin(int16_t p) {
   gpioPort = digitalPinToPort(p);
   gpioPin = STM_LL_GPIO_PIN(digitalPinToPinName(p));
 #endif
-#if defined(TARGET_GIGA)
+#if defined(TARGET_GIGA) || defined(TARGET_M4)
   gpio = digitalPinToGpio(pin);
   if (gpio == NULL)
   {
