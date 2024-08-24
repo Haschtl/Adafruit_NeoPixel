@@ -1678,7 +1678,7 @@ void Adafruit_NeoPixel::show(void) {
   while (p < end)
   {
     pix = *p++;
-    for (int i = 0; i < 8; i++)
+    for (int i = 7; i >= 0; i--)
     {
       // gpio_write(&gpio->gpio, 1);
       gpio->write(1);
